@@ -1705,6 +1705,7 @@ def main():
     optparser.add_option(      "--dump-config", dest="dump_config", action="store_true", help="Dump current configuration after parsing config files and command line options and exit.")
     optparser.add_option(      "--access_key", dest="access_key", help="AWS Access Key")
     optparser.add_option(      "--secret_key", dest="secret_key", help="AWS Secret Key")
+    optparser.add_option(      "--noconfig", dest="noconfig", help="Do not use the config file. access_key and secret_options will be required")
 
     optparser.add_option("-n", "--dry-run", dest="dry_run", action="store_true", help="Only show what should be uploaded or downloaded but don't actually do it. May still perform S3 requests to get bucket listings and other information though (only for file transfer commands)")
 
@@ -1805,20 +1806,23 @@ def main():
         sys.exit(0)
 
     ## Now finally parse the config file
-    if not options.config:
-        error(u"Can't find a config file. Please use --config option.")
-        sys.exit(1)
-
-    try:
-        cfg = Config(options.config)
-    except IOError, e:
-        if options.run_configure:
-            cfg = Config()
-        else:
-            error(u"%s: %s"  % (options.config, e.strerror))
-            error(u"Configuration file not available.")
-            error(u"Consider using --configure parameter to create one.")
+    if  options.noconfig:
+        cfg = Config()
+    else:
+        if not options.config:
+            error(u"Can't find a config file. Please use --config option.")
             sys.exit(1)
+
+        try:
+            cfg = Config(options.config)
+        except IOError, e:
+            if options.run_configure:
+                cfg = Config()
+            else:
+                error(u"%s: %s"  % (options.config, e.strerror))
+                error(u"Configuration file not available.")
+                error(u"Consider using --configure parameter to create one.")
+                sys.exit(1)
 
     ## And again some logging level adjustments
     ## according to configfile and command line parameters
